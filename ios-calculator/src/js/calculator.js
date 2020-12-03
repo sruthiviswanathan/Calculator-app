@@ -15,21 +15,23 @@ const calculatorDisplay = document.querySelector('.result');
 
 // Handles if the user input is an operator
 handleOperator = (operator) => {
-    if (operator != INTEGER_SWITCH_OPERATOR) {
-        calculator.operator = operator;
-        calculator.displayValue = '';
-    } else {
-        let displayValue = '';
-        if (calculator.isFirstOperandPopulated && calculator.operator) {
-            calculator.secondOperand = (calculator.secondOperand.includes(NEGATIVE_INTEGER_OPERATOR)) ? calculator.secondOperand : (NEGATIVE_INTEGER_OPERATOR +  calculator.secondOperand);
-            displayValue = calculator.secondOperand;
+        if (operator != INTEGER_SWITCH_OPERATOR) {
+            if (calculator.isFirstOperandPopulated || calculator.firstOperand) {
+                calculator.operator = operator;
+                calculator.displayValue = '';
+            }
         } else {
-            calculator.firstOperand = (calculator.firstOperand.includes(NEGATIVE_INTEGER_OPERATOR)) ? calculator.firstOperand : (NEGATIVE_INTEGER_OPERATOR +  calculator.firstOperand);
-            displayValue = calculator.firstOperand;
+            let displayValue = '';
+            if (calculator.isFirstOperandPopulated && calculator.operator) {
+                calculator.secondOperand = negateInteger(calculator.secondOperand);
+                displayValue = calculator.secondOperand;
+            } else {
+                calculator.firstOperand = negateInteger(calculator.firstOperand);
+                displayValue = calculator.firstOperand;
+            }
+            calculatorDisplay.innerText = displayValue;
+            calculator.displayValue = displayValue;
         }
-        calculatorDisplay.innerHTML = displayValue;
-        calculator.displayValue = displayValue;
-    }
 }
 
 // Handles if the user inputs a number
@@ -45,7 +47,7 @@ handleInput = (value) => {
         calculatedDisplayValue = displayValue;
         calculator.secondOperand = calculatedDisplayValue;
     }
-    calculatorDisplay.innerHTML = calculatedDisplayValue;
+    calculatorDisplay.innerText = calculatedDisplayValue;
 }
 
 // Calculates the result based on the user values
@@ -74,7 +76,7 @@ handleResult = () => {
             break;
     }
     calculatedValue = calculatedValue.toString();
-    calculatorDisplay.innerHTML = calculatedValue;
+    calculatorDisplay.innerText = calculatedValue;
     resetValuesAfterCalculation(calculatedValue);
 }
 
@@ -91,20 +93,26 @@ resetValuesAfterCalculation = (calculatedValue) => {
 handleDotOperator = () => {
     let displayValue = '';
     if (calculator.isFirstOperandPopulated && calculator.operator) {
-        calculator.secondOperand = (calculator.secondOperand.includes(DOT_OPERATOR)) ? calculator.secondOperand : (calculator.secondOperand + DOT_OPERATOR);
+        calculator.secondOperand = convertIntegerToDecimal(calculator.secondOperand);
         displayValue = calculator.secondOperand;
     } else {
-        calculator.firstOperand = (calculator.firstOperand.includes(DOT_OPERATOR)) ? calculator.firstOperand : (calculator.firstOperand + DOT_OPERATOR);
+        calculator.firstOperand = convertIntegerToDecimal(calculator.firstOperand);
         displayValue = calculator.firstOperand;
     }
     calculator.displayValue = displayValue;
-    calculatorDisplay.innerHTML = displayValue;
+    calculatorDisplay.innerText = displayValue;
 }
 
 // Handler to reset the values and display
 resetHandler = () => {
-    calculator = {};
-    calculatorDisplay.innerHTML = '';
+    calculator = {
+        firstOperand: '',
+        secondOperand: '',
+        operator: '',
+        displayValue: '',
+        isFirstOperandPopulated: false
+    };
+    calculatorDisplay.innerText = '0';
 }
 
 // Event Handlers to all the buttons in the calculator
@@ -113,7 +121,7 @@ addEventsToCalculatorButtons = () => {
     for (let i=0; i<calculatorButtons.length; i++) {
         calculatorButtons[i].addEventListener('click', (event) => {
             const selectedElement = event.target;
-            const selectedValue = selectedElement.innerHTML;
+            const selectedValue = selectedElement.innerText;
             if(selectedElement.classList.contains('operator')) {
                 handleOperator(selectedValue);
             } else if (selectedElement.classList.contains('number')) {
@@ -135,3 +143,17 @@ bootstrap = () => {
 }
 
 bootstrap();
+
+// Utility methods
+
+// function to negate an integer
+negateInteger = (value) => {
+    const negatedInteger = (value.includes(NEGATIVE_INTEGER_OPERATOR)) ? value : (NEGATIVE_INTEGER_OPERATOR +  value);
+    return negatedInteger;
+}
+
+// function to convert integer to decimal
+convertIntegerToDecimal = (value) => {
+    const decimalValue = (value.includes(DOT_OPERATOR)) ? value : (value + DOT_OPERATOR);
+    return decimalValue;
+}

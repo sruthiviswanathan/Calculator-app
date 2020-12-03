@@ -55,8 +55,19 @@
     outline: none;
 }
 
+.button:first-child {
+    font-size: 22px;
+}
+
 .button:hover {
-    opacity: 0.8;
+    background-color: rgb(255, 255, 255, 0.5);
+    transform: scale(1.1);
+    transition: 0.1s ease;
+}
+
+span:nth-child(4n+4):hover, span:last-child:hover {
+    background-color: rgb(255, 255, 255);
+    color: #ffa500;
 }
 
 .zero-btn {
