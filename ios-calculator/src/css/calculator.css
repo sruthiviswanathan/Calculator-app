@@ -39,13 +39,12 @@
     text-align: center;
 }
 
-.button {
+button {
     flex: 0 1 25%;
     background-color: #454545;
     color: white;
     font-size: 25px;
-    margin: 7px auto;
-    margin-left: 3px;
+    margin: 7px auto 3px;
     padding: 20px;
     max-width: 65px;
     max-height: 65px;
@@ -55,25 +54,31 @@
     outline: none;
 }
 
-.button:hover {
-    opacity: 0.8;
+button:first-child {
+    font-size: 22px;
+}
+
+button:nth-child(4n+4):hover, button:last-child:hover {
+    background-color: rgb(255, 255, 255);
+    color: #ffa500;
 }
 
 .zero-btn {
     text-align: left;
     max-width: 140px;
     flex-grow: 2;
-    border-top-left-radius: 50px;
-    border-bottom-left-radius: 50px;
-    border-top-right-radius: 50px;
-    border-bottom-right-radius: 50px;
+    border-radius: 50px;
 }
 
-span:nth-child(1),span:nth-child(2),span:nth-child(3) {
+button:nth-child(1),button:nth-child(2),button:nth-child(3) {
     background-color:#C0C0C0;
     color: black;
 }
 
-span:nth-child(4n+4), span:last-child {
+button:nth-child(4n+4), button:last-child {
     background-color: #ffa500;
+}
+
+button:hover {
+    background-color: rgb(255, 255, 255, 0.5);
 }

@@ -1,128 +1,128 @@
-let calculator = {
-    firstOperand: '',
-    secondOperand: '',
-    operator: '',
-    displayValue: '',
-    isFirstOperandPopulated: false
-};
+import { Calculator } from './calc.js';
+import { Utils } from './utils.js';
 
 const MAX_DISPLAY_DIGITS = 9;
-const NEGATIVE_INTEGER_OPERATOR = '-';
-const DOT_OPERATOR = '.';
+const MAX_EXPONENTIAL_DIGITS = 4;
 const INTEGER_SWITCH_OPERATOR = '+/-';
+const PERCENTAGE_OPERATOR = '%';
 
+let calculator = new Calculator();
 const calculatorDisplay = document.querySelector('.result');
 
 // Handles if the user input is an operator
-handleOperator = (operator) => {
-    if (operator != INTEGER_SWITCH_OPERATOR) {
-        calculator.operator = operator;
-        calculator.displayValue = '';
-    } else {
-        let displayValue = '';
-        if (calculator.isFirstOperandPopulated && calculator.operator) {
-            calculator.secondOperand = (calculator.secondOperand.includes(NEGATIVE_INTEGER_OPERATOR)) ? calculator.secondOperand : (NEGATIVE_INTEGER_OPERATOR +  calculator.secondOperand);
-            displayValue = calculator.secondOperand;
-        } else {
-            calculator.firstOperand = (calculator.firstOperand.includes(NEGATIVE_INTEGER_OPERATOR)) ? calculator.firstOperand : (NEGATIVE_INTEGER_OPERATOR +  calculator.firstOperand);
-            displayValue = calculator.firstOperand;
+const handleOperator = (operator) => {
+        if (operator == PERCENTAGE_OPERATOR) { // Percentage Handler
+            percentageHandler();
+        } else if (operator != INTEGER_SWITCH_OPERATOR) { // Arithmetic Operations Handler
+            if (calculator.secondOperand) {
+                handleResult();
+                calculator.setOperator(operator);
+            } else if (calculator.isFirstOperandPopulated || calculator.firstOperand) { // To perform operations recursively
+                calculator.setOperator(operator);
+                calculator.setDisplayValue(null);
+                calculator.isFirstOperandPopulated = true;
+            }
+        } else { // Negate user input
+            let displayValue = '';
+            if (calculator.isFirstOperandPopulated && calculator.operator) {
+                displayValue = Utils.negateInteger(calculator.secondOperand);
+                calculator.setSecondOperand(displayValue);
+            } else {
+                displayValue = Utils.negateInteger(calculator.firstOperand);
+                calculator.setFirstOperand(displayValue);
+            }
+            updateDisplayValue(displayValue);
+            calculator.setDisplayValue(displayValue);
         }
-        calculatorDisplay.innerHTML = displayValue;
-        calculator.displayValue = displayValue;
-    }
 }
 
 // Handles if the user inputs a number
-handleInput = (value) => {
-    calculator.displayValue = (calculator.displayValue) ? (calculator.displayValue.length == MAX_DISPLAY_DIGITS ? calculator.displayValue : calculator.displayValue + value) : value;
-    let displayValue = calculator.displayValue;
-    let calculatedDisplayValue = '';
+const handleInput = (value) => {
+    let displayValue = '';
     if (!calculator.operator) {
-        calculatedDisplayValue = displayValue;
-        calculator.firstOperand = calculatedDisplayValue;
+        displayValue = checkDisplayValue(value);
+        calculator.setFirstOperand(displayValue);
     } else {
-        calculator.isFirstOperandPopulated = true;
-        calculatedDisplayValue = displayValue;
-        calculator.secondOperand = calculatedDisplayValue;
+        displayValue = (!calculator.secondOperand) ? calculator.getSecondOperand() + value : checkDisplayValue(value);
+        calculator.setSecondOperand(displayValue);
+        calculator.setFirstOperandPopulated(true);
     }
-    calculatorDisplay.innerHTML = calculatedDisplayValue;
+    calculator.setDisplayValue(displayValue);
+    updateDisplayValue(displayValue);
 }
 
 // Calculates the result based on the user values
-handleResult = () => {
+const handleResult = () => {
     let {firstOperand, secondOperand, operator} = calculator;
     firstOperand = parseFloat(firstOperand);
     secondOperand = parseFloat(secondOperand);
     let calculatedValue;
     switch (operator) {
         case '+':
-            calculatedValue = firstOperand + secondOperand;
-            break;
         case '-':
-            calculatedValue = firstOperand - secondOperand;
+        case '/':
+            calculatedValue = calculator.arithmeticOperatorHandler(`${firstOperand} ${operator} ${secondOperand}`);
             break;
         case 'x':
-            calculatedValue = firstOperand * secondOperand;
-            break;
-        case '/':
-            calculatedValue = firstOperand / secondOperand;
-            break;
-        case '%':
-            calculatedValue = firstOperand % secondOperand;
+            calculatedValue = calculator.arithmeticOperatorHandler(`${firstOperand} * ${secondOperand}`);
             break;
         default:
             break;
     }
     calculatedValue = calculatedValue.toString();
-    calculatorDisplay.innerHTML = calculatedValue;
-    resetValuesAfterCalculation(calculatedValue);
+    updateDisplayValue(calculatedValue);
+    calculator.resetValuesAfterCalculation(calculatedValue);
 }
 
-// Reset the local calculator object after successful calculation
-resetValuesAfterCalculation = (calculatedValue) => {
-    calculator.secondOperand = '';
-    calculator.operator = '';
-    calculator.firstOperand = calculatedValue;
-    calculator.displayValue = calculatedValue;
-    calculator.isFirstOperandPopulated = true;
+// Calculates the percentage of current input
+const percentageHandler = () => {
+    let displayValue = '';
+    if (calculator.isFirstOperandPopulated && calculator.operator) {
+        displayValue = calculator.arithmeticOperatorHandler(`${calculator.secondOperand} / 100`);
+        calculator.setSecondOperand(displayValue);
+    } else {
+        displayValue = calculator.arithmeticOperatorHandler(`${calculator.firstOperand} / 100`);;
+        calculator.setFirstOperand(displayValue);
+    }
+    updateDisplayValue(displayValue);
 }
 
 // Handles if the user inputs a dot
-handleDotOperator = () => {
+const handleDotOperator = () => {
     let displayValue = '';
     if (calculator.isFirstOperandPopulated && calculator.operator) {
-        calculator.secondOperand = (calculator.secondOperand.includes(DOT_OPERATOR)) ? calculator.secondOperand : (calculator.secondOperand + DOT_OPERATOR);
-        displayValue = calculator.secondOperand;
+        displayValue = Utils.convertIntegerToDecimal(calculator.secondOperand);
+        calculator.setSecondOperand(displayValue);
     } else {
-        calculator.firstOperand = (calculator.firstOperand.includes(DOT_OPERATOR)) ? calculator.firstOperand : (calculator.firstOperand + DOT_OPERATOR);
-        displayValue = calculator.firstOperand;
+        displayValue = Utils.convertIntegerToDecimal(calculator.firstOperand);
+        calculator.setFirstOperand(displayValue);
     }
-    calculator.displayValue = displayValue;
-    calculatorDisplay.innerHTML = displayValue;
+    calculator.setDisplayValue(displayValue);
+    updateDisplayValue(displayValue);
 }
 
 // Handler to reset the values and display
-resetHandler = () => {
-    calculator = {};
-    calculatorDisplay.innerHTML = '';
+const resetHandler = () => {
+    calculator.resetValues();
+    updateDisplayValue('0');
 }
 
 // Event Handlers to all the buttons in the calculator
-addEventsToCalculatorButtons = () => {
-    const calculatorButtons = document.getElementsByTagName('span');
+const addEventsToCalculatorButtons = () => {
+    const calculatorButtons = document.getElementsByTagName('button');
     for (let i=0; i<calculatorButtons.length; i++) {
         calculatorButtons[i].addEventListener('click', (event) => {
-            const selectedElement = event.target;
-            const selectedValue = selectedElement.innerHTML;
-            if(selectedElement.classList.contains('operator')) {
+            const selectedValue = event.target.innerText;
+            const elementClassList = event.target.classList;
+            if(elementClassList.contains('operator')) {
                 handleOperator(selectedValue);
-            } else if (selectedElement.classList.contains('number')) {
+            } else if (elementClassList.contains('number')) {
                 handleInput(selectedValue);
-            } else if (selectedElement.classList.contains('calculate-operator')) {
+            } else if (elementClassList.contains('calculate-operator')) {
                 handleResult();
-            } else if (selectedElement.classList.contains('dot-operator')) {
+            } else if (elementClassList.contains('dot-operator')) {
                 handleDotOperator(selectedValue);
-            } else if (selectedElement.classList.contains('clear-operator')) {
+            } else if (elementClassList.contains('clear-operator')) {
                 resetHandler();
             }
         });
@@ -130,8 +130,19 @@ addEventsToCalculatorButtons = () => {
 }
 
 // Starting application
-bootstrap = () => {
+const bootstrap = () => {
     addEventsToCalculatorButtons();
 }
-
 bootstrap();
+
+// Helper functions
+// Update calculator display, also checks if the value is less than max allowable digits, if not converts result into exponential form
+const updateDisplayValue = (value) => {
+    calculatorDisplay.innerText = (value.length > MAX_DISPLAY_DIGITS) ? (+value).toExponential(MAX_EXPONENTIAL_DIGITS) : value;
+}
+
+// Check if the total displayed digits is allowable
+const checkDisplayValue = (value) => {
+    const displayValue = (calculator.displayValue) ? (calculator.displayValue.length == MAX_DISPLAY_DIGITS ? calculator.displayValue : calculator.displayValue + value) : value;
+    return displayValue;
+}
