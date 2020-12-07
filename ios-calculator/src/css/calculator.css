@@ -54,6 +54,11 @@ button {
     outline: none;
 }
 
+button:focus {
+    border: 1px solid white;
+    outline: 1px solid white;
+}
+
 button:first-child {
     font-size: 22px;
 }
